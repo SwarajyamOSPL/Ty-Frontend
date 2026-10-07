@@ -1,43 +1,23 @@
-import { createSlice } from '@reduxjs/toolkit'
-import { fetchPartners, savePartner } from './partnersThunks'
+import { createSlice, nanoid } from '@reduxjs/toolkit'
+import { loadJSON } from '@/utils/storage'
 
-const initialState = { items: [], status: 'idle', saving: false, error: null }
+// Dummy, in-browser data. Swap the reducers for API thunks when the backend is ready.
+const initialState = { items: loadJSON('partners', []) } // [{ id, name, createdAt }]
 
 const partnersSlice = createSlice({
   name: 'partners',
   initialState,
-  reducers: {},
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchPartners.pending, (s, action) => {
-        if (!action.meta.arg?.silent) s.status = 'loading'
-        s.error = null
-      })
-      .addCase(fetchPartners.fulfilled, (s, { payload }) => {
-        s.status = 'succeeded'
-        s.items = payload
-      })
-      .addCase(fetchPartners.rejected, (s, { payload, error }) => {
-        s.status = 'failed'
-        s.error = payload ?? error.message
-      })
-      .addCase(savePartner.pending, (s) => {
-        s.saving = true
-        s.error = null
-      })
-      .addCase(savePartner.fulfilled, (s) => {
-        s.saving = false
-      })
-      .addCase(savePartner.rejected, (s, { payload }) => {
-        s.saving = false
-        s.error = payload
-      })
+  reducers: {
+    addPartner: {
+      reducer: (state, { payload }) => {
+        state.items.unshift(payload) // newest first
+      },
+      prepare: (name) => ({ payload: { id: nanoid(), name, createdAt: new Date().toISOString() } }),
+    },
   },
 })
 
+export const { addPartner } = partnersSlice.actions
 export const selectPartners = (s) => s.partners.items
-export const selectPartnersStatus = (s) => s.partners.status
-export const selectPartnersSaving = (s) => s.partners.saving
-export const selectPartnersError = (s) => s.partners.error
 
 export default partnersSlice.reducer
