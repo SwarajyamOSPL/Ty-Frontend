@@ -5,6 +5,7 @@ import Dashboard from '@/pages/Dashboard'
 import Capper from '@/pages/capper/Capper'
 import CapperAssignAccount from '@/pages/capper/AssignAccount'
 import CapperEnterFigure from '@/pages/capper/EnterFigure'
+import ImportFile from '@/pages/importFile/ImportFile'
 import Login from '@/pages/Login'
 import Accounts from '@/pages/partner/Accounts'
 import AssignAccount from '@/pages/partner/AssignAccount'
@@ -30,6 +31,8 @@ export default function App() {
           <Route path="/capper" element={<Capper />} />
           <Route path="/capper/assign-account" element={<CapperAssignAccount />} />
           <Route path="/capper/enter-figure" element={<CapperEnterFigure />} />
+
+          <Route path="/import-file" element={<ImportFile />} />
         </Route>
       </Route>
 

@@ -59,13 +59,38 @@ export function PasswordInput(props) {
   )
 }
 
-export function StatCard({ label, value, hint, tone = 'text-slate-900 dark:text-slate-100' }) {
+// static class names so Tailwind can see them
+const STAT_THEMES = {
+  indigo: 'from-indigo-300 to-indigo-400',
+  sky: 'from-sky-300 to-blue-400',
+  amber: 'from-amber-300 to-orange-400',
+  emerald: 'from-emerald-300 to-teal-400',
+  violet: 'from-violet-300 to-purple-400',
+}
+
+// light gradient card: dark text, icon chip, and a large faded icon behind the number
+export function StatCard({ label, value, hint, icon: Icon, theme = 'indigo' }) {
   return (
-    <Card className="p-5">
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
-      <p className={`mt-2 text-2xl font-semibold tabular-nums sm:text-3xl ${tone}`}>{value}</p>
-      {hint && <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{hint}</p>}
-    </Card>
+    <div
+      className={`relative overflow-hidden rounded-2xl bg-linear-to-br p-5 text-slate-900 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg ${STAT_THEMES[theme]}`}
+    >
+      {Icon && <Icon className="absolute -bottom-4 -right-4 h-28 w-28 text-white opacity-40" aria-hidden="true" />}
+
+      <div className="relative">
+        <div className="flex items-center gap-2.5">
+          {Icon && (
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/50" aria-hidden="true">
+              <Icon className="h-5 w-5" />
+            </span>
+          )}
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-800/80">{label}</p>
+        </div>
+
+        <p className="mt-5 text-4xl font-bold tabular-nums tracking-tight">{value}</p>
+
+        {hint && <p className="mt-3 inline-block rounded-full bg-white/50 px-2.5 py-0.5 text-xs font-medium">{hint}</p>}
+      </div>
+    </div>
   )
 }
 

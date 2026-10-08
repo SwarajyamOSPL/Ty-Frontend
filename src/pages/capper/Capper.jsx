@@ -27,7 +27,7 @@ export default function Capper() {
         {cappers.map((c, i) => (
           <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/40">
             <Td className="w-16 text-slate-400">{i + 1}</Td>
-            <Td><CapperName capper={c} /></Td>
+            <Td><CapperName capper={c} size="md" /></Td>
             <Td><Badge>{countFor(c.id)}</Badge></Td>
           </tr>
         ))}

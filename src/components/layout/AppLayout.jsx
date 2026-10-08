@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/hooks/useRedux'
 import { logout, selectUser } from '@/features/auth/authSlice'
+import { useScrollToTop } from '@/hooks/useScrollToTop'
+import ScrollToTopButton from '@/components/ScrollToTopButton'
 import ThemeToggle from '@/components/ThemeToggle'
-import { ChevronDownIcon, CloseIcon, HomeIcon, LogoutIcon, MenuIcon, TagIcon, UsersIcon } from '@/components/icons'
+import { ChevronDownIcon, CloseIcon, HomeIcon, LogoutIcon, MenuIcon, TagIcon, UploadIcon, UsersIcon } from '@/components/icons'
 
 // an item with `children` becomes an expandable group whose own link opens its main page
 const NAV = [
@@ -27,6 +29,7 @@ const NAV = [
       { to: '/capper/enter-figure', label: 'Enter Figure' },
     ],
   },
+  { to: '/import-file', label: 'Import File', Icon: UploadIcon },
 ]
 
 const linkCls = (isActive) =>
@@ -92,7 +95,25 @@ function NavGroup({ item, onNavigate }) {
 export default function AppLayout() {
   const dispatch = useAppDispatch()
   const user = useAppSelector(selectUser)
+  const { pathname } = useLocation()
+  useScrollToTop(pathname) // every page opens at the top
   const [open, setOpen] = useState(false) // mobile drawer
+
+  useEffect(() => {
+    if (!open) return undefined
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden' // page behind the drawer must not scroll
+    const onKey = (e) => e.key === 'Escape' && setOpen(false)
+    const desktop = window.matchMedia('(min-width: 1024px)')
+    const onResize = (e) => e.matches && setOpen(false)
+    window.addEventListener('keydown', onKey)
+    desktop.addEventListener('change', onResize)
+    return () => {
+      document.body.style.overflow = previous
+      window.removeEventListener('keydown', onKey)
+      desktop.removeEventListener('change', onResize)
+    }
+  }, [open])
   const close = () => setOpen(false)
 
   return (
@@ -160,9 +181,14 @@ export default function AppLayout() {
         </header>
 
         <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
-          <Outlet />
+          {/* very wide monitors: keep content readable instead of stretching edge to edge */}
+          <div className="mx-auto w-full max-w-[1600px]">
+            <Outlet />
+          </div>
         </main>
       </div>
+
+      <ScrollToTopButton />
     </div>
   )
 }

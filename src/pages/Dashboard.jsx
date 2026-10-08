@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom'
 import { useAppSelector } from '@/hooks/useRedux'
+import { BriefcaseIcon, ChartBarIcon, LinkIcon, TagIcon, UsersIcon } from '@/components/icons'
 import { selectUser } from '@/features/auth/authSlice'
 import { useDashboardData } from '@/features/dashboard/useDashboardData'
 import CapperName from '@/components/capper/CapperName'
+import PieCard from '@/components/charts/PieCard'
+import ImportSummary from '@/components/dashboard/ImportSummary'
 import { Badge, Card, StatCard, Table, Td } from '@/components/ui'
 import { formatDate } from '@/utils/formatDate'
 import { formatMoney } from '@/utils/formatMoney'
@@ -17,7 +20,7 @@ const linkCls = 'font-medium text-indigo-600 hover:underline dark:text-indigo-30
 
 function Section({ title, action, children, className = '' }) {
   return (
-    <section className={className}>
+    <section className={`min-w-0 ${className}`}>
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="text-lg font-semibold">{title}</h2>
         {action}
@@ -42,6 +45,11 @@ function SummaryRow({ label, value, bold }) {
   )
 }
 
+// partner slices cycle through these (cappers use their own colour)
+const PALETTE = ['#6366f1', '#10b981', '#f59e0b', '#0ea5e9', '#f43f5e', '#8b5cf6', '#14b8a6', '#f97316']
+const NEUTRAL = '#94a3b8'
+const NOTE = 'Slice size uses absolute amounts; red values are losses.'
+
 const STEPS = [
   { to: '/partner', label: 'Create a partner' },
   { to: '/partner/accounts', label: 'Create an account (username, password, websites)' },
@@ -56,6 +64,17 @@ export default function Dashboard() {
   const winShare = totals.win + Math.abs(totals.loss) > 0 ? (totals.win / (totals.win + Math.abs(totals.loss))) * 100 : null
   const maxCapper = Math.max(1, ...byCapper.map((c) => Math.abs(c.total)))
 
+  const totalPie = [
+    { id: 'partner', label: 'Partner figures', value: totals.partner, color: '#6366f1' },
+    { id: 'capper', label: 'Capper figures', value: totals.capper, color: '#14b8a6' },
+  ]
+  const capperPie = byCapper.map(({ capper, total }) => ({
+    id: capper.id, label: capper.name, value: total, color: capper.color ?? NEUTRAL,
+  }))
+  const partnerPie = byPartner
+    .filter((p) => p.entries > 0)
+    .map(({ partner, total }, i) => ({ id: partner.id, label: partner.name, value: total, color: PALETTE[i % PALETTE.length] }))
+
   return (
     <div className="space-y-8">
       <div>
@@ -65,12 +84,12 @@ export default function Dashboard() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <StatCard label="Partners" value={counts.partners} />
-        <StatCard label="Accounts" value={counts.accounts} />
-        <StatCard label="Cappers" value={counts.cappers} />
-        <StatCard label="Assigned" value={counts.assigned} hint="partner + capper" />
-        <StatCard label="Figures entered" value={counts.figures} />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+        <StatCard label="Partners" value={counts.partners} icon={UsersIcon} theme="indigo" />
+        <StatCard label="Accounts" value={counts.accounts} icon={BriefcaseIcon} theme="sky" />
+        <StatCard label="Cappers" value={counts.cappers} icon={TagIcon} theme="amber" />
+        <StatCard label="Assigned" value={counts.assigned} hint="partner + capper" icon={LinkIcon} theme="emerald" />
+        <StatCard label="Figures entered" value={counts.figures} icon={ChartBarIcon} theme="violet" />
       </div>
 
       {counts.figures === 0 && (
@@ -87,7 +106,7 @@ export default function Dashboard() {
         </Card>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Section title="Figure Summary">
           <Card className="divide-y divide-slate-100 px-5 dark:divide-slate-700">
             <SummaryRow label="Total Figure" value={totals.total} bold />
@@ -145,7 +164,21 @@ export default function Dashboard() {
         </Section>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-5">
+      <Section title="Figure Breakdown">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <PieCard title="Total Figures" data={totalPie} empty="No figures entered yet." note={NOTE} />
+          <PieCard title="Capper Figures" data={capperPie} empty="No capper figures yet." note={NOTE} />
+          <PieCard
+            title="Partner Figures"
+            data={partnerPie}
+            empty="No partner figures yet."
+            note={NOTE}
+            className="md:col-span-2 lg:col-span-1"
+          />
+        </div>
+      </Section>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <Section
           title="Recent Figure Entries"
           className="lg:col-span-3"
@@ -197,6 +230,8 @@ export default function Dashboard() {
           </Card>
         </Section>
       </div>
+
+      <ImportSummary />
     </div>
   )
 }
